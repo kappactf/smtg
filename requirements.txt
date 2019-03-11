@@ -1,0 +1,6 @@
+aiosmtpd
+py3dns
+dkimpy
+pyspf
+python-telegram-bot
+
