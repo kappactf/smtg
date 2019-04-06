@@ -6,6 +6,8 @@ from telegram import *
 import re
 from email.header import decode_header
 from parser import TelegramHTMLParser
+import quopri
+import io
 
 bot = Bot(TOKEN)
 
@@ -14,9 +16,13 @@ def decode(text):
         t[0].decode() if isinstance(t[0], bytes) else t[0]
         for t in decode_header(text))
 
+def utf8decode(instring):
+    outfile = io.BytesIO()
+    quopri.decode(io.StringIO(instring), outfile)
+    return outfile.getvalue().decode('utf-8')
+
 def safe(text):
     return decode(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
 
 def message_content(message):
     if message.is_multipart():
@@ -25,7 +31,7 @@ def message_content(message):
         # parser = TelegramHTMLParser()
         # parser.feed(message.get_payload())
         # return parser.output
-        return safe(message.get_payload())
+        return safe(utf8decode(message.get_payload()))
         
     else:
         return f"Attachment {message.get_content_type()}, {len(message.get_payload())} bytes"
