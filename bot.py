@@ -16,11 +16,6 @@ def decode(text):
         t[0].decode() if isinstance(t[0], bytes) else t[0]
         for t in decode_header(text))
 
-def utf8decode(instring):
-    outfile = io.BytesIO()
-    quopri.decode(io.StringIO(instring), outfile)
-    return outfile.getvalue().decode('utf-8')
-
 def safe(text):
     return decode(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
@@ -31,7 +26,7 @@ def message_content(message):
         # parser = TelegramHTMLParser()
         # parser.feed(message.get_payload())
         # return parser.output
-        return safe(utf8decode(message.get_payload()))
+        return safe(message.get_payload(decode=True).decode('utf-8'))
         
     else:
         return f"Attachment {message.get_content_type()}, {len(message.get_payload())} bytes"
@@ -46,15 +41,28 @@ def send_message(message, dkim=False, spf=False):
         text += "\n\u26a0\ufe0f <i>DKIM is not verified</i>"
     if not spf:
         text += "\n\u26a0\ufe0f <i>SPF is not verified</i>"
-    try:
-        bot.send_message(
-            chat_id=CHAT_ID,
-            text=text,
-            parse_mode="HTML"
-        )
-    except:
-        bot.send_message(
-            chat_id=CHAT_ID,
-            text=text
-        )
-
+    if len(text)<4096:
+        try:
+            bot.send_message(
+                chat_id=CHAT_ID,
+                text=text,
+                parse_mode="HTML"
+            )
+        except:
+            bot.send_message(
+                chat_id=CHAT_ID,
+                text=text
+            )
+    else:
+        for x in range(0, len(text), 4096):
+            try:
+                bot.send_message(
+                    chat_id=CHAT_ID,
+                    text=text[x:x+4096],
+                    parse_mode="HTML"
+                )
+            except:
+                bot.send_message(
+                    chat_id=CHAT_ID,
+                    text=text[x:x+4096]
+                )
