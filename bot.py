@@ -7,9 +7,33 @@ import re
 from email.header import decode_header
 from parser import TelegramHTMLParser
 import quopri
+import hashlib
 import io
+import time
+import os
+import traceback
 
 bot = Bot(TOKEN)
+
+def sanitize_fn(text):
+    try:
+        value = quopri.decodestring(text)
+    except e:
+        traceback.print_exc(e)
+        value = text
+
+    if "." in text:
+        ext = text.split(".")[-1]
+    else:
+        ext = "q"
+
+    if text.isalnum() and len(text) < 42:
+        return text
+    elif text[:30].isalnum():
+        return text[:30] + "." + ext
+    else:
+        return hashlib.md5(text.encode()).hexdigest() + "." + ext
+
 
 def decode(text):
     return ''.join(
@@ -23,15 +47,23 @@ def message_content(message):
     if message.is_multipart():
         return '\n\n'.join(list(map(message_content, message.get_payload())))
     elif message.get_content_type() == "text/html" or message.get_content_type() == "text/plain":
-        # parser = TelegramHTMLParser()
-        # parser.feed(message.get_payload())
-        # return parser.output
-        return safe(message.get_payload(decode=True).decode('utf-8'))
-        
+        parser = TelegramHTMLParser()
+        message = message.get_payload(decode=True).decode('utf-8')
+        message = re.sub(r"(\r\n|\r)", "\n", message)
+        message = re.sub(r"\s+", " ", message)
+        message = re.sub(r"(\n\s)+\n", "\n", message)
+        message = re.sub(r"\n", "", message)
+        parser.feed(message)
+        return parser.output
+        # return safe(message.get_payload(decode=True).decode('utf-8'))
     else:
-        return f"Attachment {message.get_content_type()}, {len(message.get_payload())} bytes"
+        fn = f"{int(time.time())}-{sanitize_fn(message.get_filename(failobj='file'))}"
+        with open(os.path.join(MEDIA_PATH, fn), "wb") as f:
+            f.write(message.get_payload(decode=True))
+        return f"Attachment {message.get_content_type()}, {len(message.get_payload())} bytes, {MEDIA_ROOT_URL}/{fn}"
 
 def send_message(message, dkim=False, spf=False):
+    print(message.items())
     text=f'''\ud83d\udce7 <b>{safe(message.get("Subject", ""))}</b>
 {safe(message.get("from", ""))} → {safe(message.get("To", ""))}
 
@@ -61,6 +93,7 @@ def send_message(message, dkim=False, spf=False):
                     text=text[x:x+4096],
                     parse_mode="HTML"
                 )
+                time.sleep(0.3)
             except:
                 bot.send_message(
                     chat_id=CHAT_ID,

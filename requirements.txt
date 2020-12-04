@@ -4,3 +4,6 @@ dkimpy
 pyspf
 python-telegram-bot
 
+psycopg2
+peewee
+

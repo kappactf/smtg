@@ -49,8 +49,6 @@ class MailHandler:
         ip = session.peer[0]
         result, description = spf.check2(ip, address, session.host_name)
 
-        envelope.spf = result == "pass"
-
         envelope.mail_from = address
         envelope.mail_options.extend(mail_options)
 
@@ -65,20 +63,21 @@ class MailHandler:
         return "250 OK"
 
     async def handle_DATA(self, server, session, envelope):
-        envelope.dkim = dkim.verify(envelope.content)
-
         message = message_from_bytes(envelope.content)
+
+        dkim = "dkim=pass" in message.get("Authentication-Results", "")
+        spf = "Pass" in message.get("Received-SPF", "")
         
         default_triggered = False
 
         for recipient in envelope.rcpt_tos:
             for handler in self.handlers:
-                if handler.process(recipient, message, envelope.dkim, envelope.spf):
+                if handler.process(recipient, message, dkim, spf):
                     break
             else:
                 if not default_triggered and self.default_handler is not None:
                     default_triggered = True
-                    self.default_handler(message, envelope.dkim, envelope.spf)
+                    self.default_handler(message, dkim, spf)
 
         return "250 Message accepted for delivery"
 

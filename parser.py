@@ -9,6 +9,8 @@ class TelegramHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag == "br":
             self.output += "\n"
+        elif tag == "code":
+            self.output += "<code>"
         elif tag in ["b", "strong"]:
             self.output += "<b>"
         elif tag in ["i", "em"]:
@@ -26,6 +28,8 @@ class TelegramHTMLParser(HTMLParser):
     def handle_endtag(self, tag):
         if tag == "p":
             self.output += "\n\n"
+        elif tag == "code":
+            self.output += "</code>"
         elif tag in ["b", "strong"]:
             self.output += "</b>"
         elif tag in ["i", "em"]:
