@@ -1,32 +1,68 @@
-# Telegram Mail Server
+# SMTG
 
-Easy mail server for your domain, which forwards all messages
-to Telegram chat.
+Asynchronous and fast Python mail server, which can route your messages to Telegram.
 
 ## Features
 
-* Supports Telegram formatting (bold, italic, links)
+* Spam check
+* Saves raw EML to drive so you could check them out
+* Telegram formatting (bold, italic, links)
+* Attachments support
 
-## How-to
+## Getting Started
 
-You need Python 3 and pip.
+#### Bot Setup
 
-Install all dependencies: `pip3 -r requirements.txt`.
+Use [@BotFather](https://t.me/BotFather) to create a new bot. You will get a token.
 
-Run server: `python3 relay.py`.
+#### Spamhaus Setup
 
-Point your domain MX records to your host: `@ IN MX 10 YOUR.HOSTNAME.HERE`.
+By default, SMTG uses several built-in providers for checking spam. You can use Spamhaus Zen or any DNSBL of your choice.
+
+Message is considered as a spam if sender IP is blacklisted either by your DNSBL or by at least three of built-in providers.
+
+To use Spamhaus Zen, you need to get key. You can get it [here](https://www.spamhaus.org/zen/). For other providers, ask them for domain name.
+
+#### Configuration
+
+Create file `config.toml` in a working directory containing:
+
+```toml
+[smtg]
+# Your domain name, REQUIRED
+hostname = "example.org"
+# DNSBL provider domain, OPTIONAL
+dnsbl = "yourtoken.zen.dq.spamhaus.net"
+# Path to save EML files, REQUIRED
+eml_path = "."
+
+[smtg.telegram]
+# Telegram bot token, REQUIRED
+token = "YOUR_TOKEN"
+# Telegram chat ID, REQUIRED
+chat_id = 123456789
+```
+
+#### Domain Setup
+
+Point MX record to your server.
+
+#### Run
+
+* To install dependencies: `poetry install`.
+* To run: `poetry run python -m smtg`.
+
+## Extending
+
+You can use only `smtg.handler.MailHandler` class and implement your own logic for handling messages — personal inboxes, complex rules, different messenger, etc.
 
 ## TODO 
 
-- [ ] Outgoing messages
-- [ ] Basic formatting
-- [ ] Telegram reply → Outgoing message
+- [ ] Outgoing messages (via separate command or reply)
 - [ ] Personal inbox
 
 ## License
 
 This server is written by [Nikita Sychev](https://nsychev.ru).
 
-You can use code at your own. All sources are licensed by [MIT License](LICENSE).
-
+You can use this code at your own. All sources are licensed by [MIT License](LICENSE).

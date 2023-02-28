@@ -1,5 +1,2 @@
 __pycache__/
-
-config.py
-keys/
-
+config.toml

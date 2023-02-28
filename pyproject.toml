@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "smtg"
+version = "0.2.0"
+description = "Mail relay to Telegram with built-in anti-spam checks"
+authors = ["Nikita Sychev"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiosmtpd = "^1.4.4.post2"
+py3dns = "^3.2.1"
+dkimpy = {extras = ["asyncio"], version = "^1.1.0"}
+pyspf = "^2.0.14"
+aiogram = "^2.25.1"
+typed-settings = "^2.0.2"
+pydnsbl = "^1.1.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
