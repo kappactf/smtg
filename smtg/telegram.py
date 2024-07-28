@@ -102,9 +102,10 @@ class TelegramRoute:
     async def __call__(self, recipients: list[str], message: EmailMessage) -> list[str]:
         prepared_message = convert_message(message)
 
-        if any(word in prepared_message for word in config.spam.blacklist):
-            # It's spam
-            return []
+        for word in config.spam.blacklist:
+            if any(word in part for part in prepared_message.html_parts):
+                # It's spam
+                return []
 
         if self.emails is None:
             # Catch-all
