@@ -31,7 +31,7 @@ class MailHandler(AsyncMessage):
             for provider in BASE_PROVIDERS
             if provider.host not in ["cbl.abuseat.org", "zen.spamhaus.org"]
         ]
-        if config.dnsbl:
+        if config.spam.dnsbl:
             providers.append(ZenSpamhaus(config.spam.dnsbl))
 
         self.ip_checker = pydnsbl.DNSBLIpChecker(providers=providers, loop=loop)
