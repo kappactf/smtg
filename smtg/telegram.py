@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from email.message import EmailMessage, MIMEPart
 
 import aiogram
-from aiogram.types import InputFile, InputMedia, InputMediaDocument, MediaGroup
+from aiogram.types import InputFile, InputMedia, InputMediaDocument
 
 from smtg.config import config
 from smtg.parsers import HTMLSimplifier, HTMLSplitter
@@ -139,10 +139,6 @@ class TelegramRoute:
                     InputMediaDocument(media=attachment)
                     for attachment in prepared_message.attachments
                 ]
-                await self.bot.send_media_group(
-                    config.telegram.chat_id,
-                    MediaGroup(medias),  # type: ignore (wtf?)
-                    reply_to_message_id=message_id
-                )
+                await self.bot.send_media_group(self.chat_id, medias, reply_to_message_id=message_id)
 
         return next_recipients

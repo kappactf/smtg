@@ -37,7 +37,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        loop.run_until_complete(bot.close())
+        loop.run_until_complete(bot.session.close())
         controller.end()
         loop.stop()
         loop.close()
