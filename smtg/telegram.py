@@ -23,7 +23,7 @@ def create_bot() -> aiogram.Bot:
         token=config.telegram.token,
         default=DefaultBotProperties(
             parse_mode="HTML",
-            disable_web_page_preview=True
+            link_preview_is_disabled=True
         )
     )
 
