@@ -31,16 +31,22 @@ Create file `config.toml` in a working directory containing:
 [smtg]
 # Your domain name, REQUIRED
 hostname = "example.org"
-# DNSBL provider domain, OPTIONAL
-dnsbl = "yourtoken.zen.dq.spamhaus.net"
 # Path to save EML files, REQUIRED
 eml_path = "."
+
+[smtg.spam]
+# DNSBL provider domain, OPTIONAL
+dnsbl = "yourtoken.zen.dq.spamhaus.net"
 
 [smtg.telegram]
 # Telegram bot token, REQUIRED
 token = "YOUR_TOKEN"
-# Telegram chat ID, REQUIRED
-chat_id = 123456789
+# Telegram chat ID for unmatched messages, REQUIRED
+catch_all_chat_id = 123456789
+# Telegram chat IDs for personal messages, OPTIONAL
+inboxes = [
+    { chat_id = 987654321, emails = ["important@example.org"] }
+]
 ```
 
 #### Domain Setup
@@ -59,7 +65,8 @@ You can use only `smtg.handler.MailHandler` class and implement your own logic f
 ## TODO 
 
 - [ ] Outgoing messages (via separate command or reply)
-- [ ] Personal inbox
+- [ ] Async SPF library
+- [ ] Check DMARC
 
 ## License
 

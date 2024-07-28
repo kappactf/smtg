@@ -8,13 +8,13 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aiosmtpd = "^1.4.4.post2"
-py3dns = "^3.2.1"
-dkimpy = {extras = ["asyncio"], version = "^1.1.0"}
+aiosmtpd = "^1.4.6"
+py3dns = "^4.0.2"
+dkimpy = {extras = ["asyncio"], version = "^1.1.8"}
 pyspf = "^2.0.14"
-aiogram = "^2.25.1"
-typed-settings = "^2.0.2"
-pydnsbl = "^1.1.5"
+aiogram = "^3.10.0"
+typed-settings = "^24.4.0"
+pydnsbl = "^1.1.6"
 
 
 [build-system]

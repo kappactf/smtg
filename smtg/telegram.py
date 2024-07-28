@@ -2,8 +2,7 @@ import html
 import io
 from asyncio import AbstractEventLoop
 from dataclasses import dataclass, field
-from email.message import EmailMessage
-from typing import Any
+from email.message import EmailMessage, MIMEPart
 
 import aiogram
 from aiogram.types import InputFile, InputMedia, InputMediaDocument, MediaGroup
@@ -27,7 +26,7 @@ def create_bot(loop: AbstractEventLoop) -> aiogram.Bot:
     )
 
 
-def wrap_io(message) -> io.IOBase:
+def wrap_io(message: MIMEPart) -> io.IOBase:
     content = message.get_content()
     if isinstance(content, str):
         return io.StringIO(content)
@@ -73,23 +72,59 @@ def convert_message(message: EmailMessage) -> ConvertedMessage:
 
 
 class TelegramRoute:
-    def __init__(self, bot: aiogram.Bot):
-        self.bot = bot
+    def __init__(self, bot: aiogram.Bot, chat_id: int, emails: list[str] | None = None):
+        """Add route for sending incoming messages to Telegram.
 
-    async def __call__(self, _recipients: list[str], message: EmailMessage) -> list[str]:
+        Keyword arguments:
+        bot -- reference to aiogram bot instance
+        chat_id -- Telegram chat ID
+        emails -- filter for emails to be processed by this route (default is None, that means catch-all route)
+        """
+        self.bot = bot
+        self.chat_id = chat_id
+        self.emails = emails
+
+    def _match_email(route: str, recipient: str) -> bool:
+        """Checks if email to [route] should be delivered to [recipient]."""
+
+        route_prefix, _ = route.lower().split("@", 1)
+        recipient_prefix, _ = recipient.lower().split("@", 1)
+
+        if route_prefix.contains('+'):
+            return recipient_prefix == route_prefix
+
+        recipient_nonplus_prefix, _ = recipient_prefix.split('+', 1)
+
+        return recipient_nonplus_prefix == route_prefix
+
+    async def __call__(self, recipients: list[str], message: EmailMessage) -> list[str]:
         prepared_message = convert_message(message)
+
+        if any(word in prepared_message for word in config.spam.blacklist):
+            # It's spam
+            return []
+
+        if self.emails is None:
+            # Catch-all
+            next_recipients = []
+        else:
+            next_recipients = [
+                recipient
+                for recipient in recipients
+                if all(not self._match_email(route, recipient) for route in self.emails)
+            ]
+
+            if next_recipients == recipients:
+                # This route does not match.
+                return
 
         message_id = None
 
         for part in prepared_message.html_parts:
-            telegram_message = await self.bot.send_message(
-                config.telegram.chat_id,
-                part,
-                reply_to_message_id=message_id
-            )
+            telegram_message = await self.bot.send_message(self.chat_id, part, reply_to_message_id=message_id)
             if message_id is None:
                 message_id = telegram_message.message_id
-        
+
         match len(prepared_message.attachments):
             case 0:
                 ...
@@ -110,4 +145,4 @@ class TelegramRoute:
                     reply_to_message_id=message_id
                 )
 
-        return []
+        return next_recipients

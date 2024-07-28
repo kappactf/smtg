@@ -4,9 +4,16 @@ import typed_settings as ts
 
 
 @ts.settings
+class TelegramInbox:
+    chat_id: str
+    emails: list[str]
+
+
+@ts.settings
 class TelegramSettings:
     token: str
-    chat_id: int
+    catch_all_chat_id: int
+    inboxes: list[TelegramInbox] = []
 
 @ts.settings
 class TLSSettings:
@@ -23,16 +30,22 @@ class SMTPSettings:
 
 
 @ts.settings
+class SpamSettings:
+    dnsbl: str | None = None
+    blacklist: list[str] = []
+
+
+@ts.settings
 class Settings:
     hostname: str
     telegram: TelegramSettings
     smtp: SMTPSettings
 
     eml_path: Path
-    dnsbl: str | None = None
+    spam: SpamSettings
 
 
-config: Settings = ts.load(Settings, appname="smtg", config_files=["config.toml"])  # type: ignore (WTF?)
+config: Settings = ts.load(Settings, appname="smtg", config_files=["config.toml"])
 
 
 __all__ = ["config"]

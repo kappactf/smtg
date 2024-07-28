@@ -5,6 +5,7 @@ import asyncio
 import logging
 
 from smtg.app import create_controller
+from smtg.config import config
 from smtg.handler import MailHandler
 from smtg.telegram import create_bot, TelegramRoute
 
@@ -19,9 +20,14 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     bot = create_bot(loop)
-    route = TelegramRoute(bot)
     handler = MailHandler(loop)
-    handler.add_route(route)
+
+    for inbox in config.telegram.inboxes:
+        route = TelegramRoute(bot, inbox.chat_id, inbox.emails)
+        handler.add_route(route)
+
+    default_route = TelegramRoute(bot, config.telegram.catch_all_chat_id)
+    handler.add_route(default_route)
 
     controller = create_controller(handler, loop)
     controller.begin()

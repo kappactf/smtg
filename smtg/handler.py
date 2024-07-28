@@ -32,7 +32,7 @@ class MailHandler(AsyncMessage):
             if provider.host not in ["cbl.abuseat.org", "zen.spamhaus.org"]
         ]
         if config.dnsbl:
-            providers.append(ZenSpamhaus(config.dnsbl))
+            providers.append(ZenSpamhaus(config.spam.dnsbl))
 
         self.ip_checker = pydnsbl.DNSBLIpChecker(providers=providers, loop=loop)
         self.routes = []
@@ -45,7 +45,7 @@ class MailHandler(AsyncMessage):
         """Given route should be a callable accepting two arguments:
           recipients: list[str]   intended recipients of the e-mail
           message: Message        the raw message received
-        
+
         It should return a list of strings - recipients that should be
         processed by the next rules.
 
@@ -59,7 +59,7 @@ class MailHandler(AsyncMessage):
 
         envelope.rcpt_tos.append(address)
         envelope.rcpt_options.extend(rcpt_options)
-        
+
         return "250 OK"
 
     def prepare_message(self, session: Session, envelope: Envelope) -> EmailMessage:
@@ -85,7 +85,7 @@ class MailHandler(AsyncMessage):
 
     async def handle_message(self, message: EmailMessage) -> None:
         message_id = str(uuid.uuid4())
-    
+
         spf_result, spf_description = spf.check2(message["X-Smtg-Peer"], message["X-Smtg-Mail-From"], message["X-Smtg-Sender-Hostname"])
 
         try:
@@ -94,7 +94,7 @@ class MailHandler(AsyncMessage):
             dkim_result = False
 
         ip_check: DNSBLResult = await self.ip_checker.check_async(message["X-Smtg-Peer"])
-        is_spam = config.dnsbl and config.dnsbl in ip_check.detected_by.keys() or len(ip_check.detected_by) > 2
+        is_spam = config.spam.dnsbl and config.spam.dnsbl in ip_check.detected_by.keys() or len(ip_check.detected_by) > 2
 
         message["X-Smtg-Id"] = message_id
         message["X-SPF-Check"] = spf_result
