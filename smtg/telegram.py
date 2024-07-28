@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from email.message import EmailMessage, MIMEPart
 
 import aiogram
+from aiogram.client.default import DefaultBotProperties
 from aiogram.types import InputFile, InputMedia, InputMediaDocument
 
 from smtg.config import config
@@ -17,12 +18,13 @@ class ConvertedMessage:
     attachments: list[InputFile] = field(default_factory=list)
 
 
-def create_bot(loop: AbstractEventLoop) -> aiogram.Bot:
+def create_bot() -> aiogram.Bot:
     return aiogram.Bot(
         token=config.telegram.token,
-        parse_mode="HTML",
-        disable_web_page_preview=True,
-        loop=loop
+        default=DefaultBotProperties(
+            parse_mode="HTML",
+            disable_web_page_preview=True
+        )
     )
 
 
