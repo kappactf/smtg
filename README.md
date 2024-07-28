@@ -37,6 +37,8 @@ eml_path = "."
 [smtg.spam]
 # DNSBL provider domain, OPTIONAL
 dnsbl = "yourtoken.zen.dq.spamhaus.net"
+# List of forbidden words, OPTIONAL
+blacklist = ["i'm spam!!"]
 
 [smtg.telegram]
 # Telegram bot token, REQUIRED
